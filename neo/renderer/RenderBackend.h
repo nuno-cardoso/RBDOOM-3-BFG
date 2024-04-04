@@ -405,6 +405,8 @@ private:
 
 	int								prevBindingLayoutType;
 
+	nvrhi::rt::AccelStructHandle tlas;
+
 public:
 
 	void				ResetPipelineCache();

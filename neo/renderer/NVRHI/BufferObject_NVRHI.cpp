@@ -198,6 +198,9 @@ bool idVertexBuffer::AllocBufferObject( const void* data, int allocSize, bufferU
 	vertexBufferDesc.isVertexBuffer = true;
 	vertexBufferDesc.initialState = nvrhi::ResourceStates::CopyDest;
 
+	vertexBufferDesc.setCanHaveRawViews(true); // we'll need to read the texture UV data in the shader
+	vertexBufferDesc.setIsAccelStructBuildInput(true); // we'll need to build the BLAS from the position data
+
 	if( usage == BU_DYNAMIC )
 	{
 		vertexBufferDesc.cpuAccess = nvrhi::CpuAccessMode::Write;
@@ -465,6 +468,8 @@ bool idIndexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUs
 	indexBufferDesc.canHaveRawViews = true;
 	indexBufferDesc.canHaveTypedViews = true;
 	indexBufferDesc.format = nvrhi::Format::R16_UINT;
+
+	indexBufferDesc.setIsAccelStructBuildInput(true); // we'll need to build the BLAS from the position data
 
 	if( _usage == BU_STATIC )
 	{

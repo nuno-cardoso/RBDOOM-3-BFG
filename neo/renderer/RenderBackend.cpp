@@ -5500,6 +5500,42 @@ void idRenderBackend::DrawViewInternal( const viewDef_t* _viewDef, const int ste
 	currentIndexOffset = 0;
 	currentJointOffset = 0;
 
+	// Build TLAS
+	if (_viewDef->renderWorld && !_viewDef->isSubview)
+	{
+		auto renderWorld = _viewDef->renderWorld;
+
+		int numModels = renderWorld->localModels.Num();
+
+		std::vector<nvrhi::rt::InstanceDesc> instances;
+
+		for (int i = 0; i < numModels; ++i)
+		{
+			auto blas = renderWorld->localModels[i]->GetBLAS();
+			if (blas == nullptr)
+			{
+				continue;
+			}
+
+			nvrhi::rt::InstanceDesc instDesc;
+			instDesc.setBLAS(blas);
+			instDesc.setInstanceMask(0xFF);
+
+			instances.push_back(instDesc);
+		}
+
+		auto tlasDesc = nvrhi::rt::AccelStructDesc()
+			.setDebugName("TLAS")
+			.setIsTopLevel(true)
+			.setTopLevelMaxInstances(instances.size());
+
+		tlas = commandList->getDevice()->createAccelStruct(tlasDesc);
+
+		commandList->beginMarker("TLAS Update");
+		commandList->buildTopLevelAccelStruct(tlas, instances.data(), instances.size());
+		commandList->endMarker();
+	}
+	
 	//-------------------------------------------------
 	// RB_BeginDrawingView
 	//

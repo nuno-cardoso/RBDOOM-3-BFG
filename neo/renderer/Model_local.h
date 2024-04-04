@@ -115,6 +115,13 @@ public:
 		return hasShadowCastingSurfaces;
 	};
 
+	virtual nvrhi::rt::AccelStructHandle& GetBLAS()
+	{
+		return blas;
+	};
+
+	virtual void CreateBLAS(nvrhi::rt::AccelStructDesc& blasDesc, nvrhi::ICommandList* commandList);
+
 	void						MakeDefaultModel();
 
 	bool						LoadASE( const char* fileName, ID_TIME_T* sourceTimeStamp );
@@ -145,6 +152,8 @@ public:
 	int							numInvertedJoints;
 	idJointMat* 				jointsInverted;
 	vertCacheHandle_t			jointsInvertedBuffer;
+
+	nvrhi::rt::AccelStructHandle blas;
 
 protected:
 	int							lastModifiedFrame;

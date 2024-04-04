@@ -922,14 +922,50 @@ void idRenderModelManagerLocal::EndLevelLoad()
 		idRenderModel* model = models[i];
 		if( model->IsLoaded() )
 		{
+			auto blasDesc = nvrhi::rt::AccelStructDesc()
+				.setDebugName("BLAS")
+				.setIsTopLevel(false);
+
 			for( int j = 0; j < model->NumSurfaces(); j++ )
 			{
 				R_CreateStaticBuffersForTri( *( model->Surface( j )->geometry ), commandList );
+
+				srfTriangles_t* geometry = model->Surface(j)->geometry;
+
+				const vertCacheHandle_t& vbHandle = geometry->ambientCache;
+				const vertCacheHandle_t& ibHandle = geometry->indexCache;
+
+				//if (vertexCache.CacheIsStatic(vbHandle))
+				{
+					nvrhi::BufferHandle vertexBuffer = vertexCache.staticData.vertexBuffer.GetAPIObject();
+					int vertexOffset = static_cast<int>(vbHandle >> VERTCACHE_OFFSET_SHIFT) & VERTCACHE_OFFSET_MASK;
+
+					nvrhi::BufferHandle indexBuffer = vertexCache.staticData.indexBuffer.GetAPIObject();
+					int indexOffset = static_cast<int>(ibHandle >> VERTCACHE_OFFSET_SHIFT) & VERTCACHE_OFFSET_MASK;
+
+					auto triangles = nvrhi::rt::GeometryTriangles();
+
+					triangles.setVertexBuffer(vertexBuffer)
+						.setVertexFormat(nvrhi::Format::RGB32_FLOAT)
+						.setVertexOffset(vertexOffset)
+						.setVertexCount(geometry->numVerts)
+						.setVertexStride(sizeof(idDrawVert));
+
+					triangles.setIndexBuffer(indexBuffer)
+						.setIndexFormat(nvrhi::Format::R16_UINT)
+						.setIndexOffset(indexOffset)
+						.setIndexCount(geometry->numIndexes);
+
+					blasDesc.addBottomLevelGeometry(nvrhi::rt::GeometryDesc().setTriangles(triangles));
+				}
 			}
+
+			model->CreateBLAS(blasDesc, commandList);
 		}
 	}
 
 	commandList->close();
+
 	deviceManager->GetDevice()->executeCommandList( commandList );
 
 	// _D3XP added this

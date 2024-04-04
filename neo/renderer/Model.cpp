@@ -3825,3 +3825,15 @@ bool idRenderModelStatic::FindSurfaceWithId( int id, int& surfaceNum ) const
 	}
 	return false;
 }
+
+void idRenderModelStatic::CreateBLAS(nvrhi::rt::AccelStructDesc& blasDesc, nvrhi::ICommandList* commandList)
+{
+	if (!blasDesc.bottomLevelGeometries.empty())
+	{
+		blas = commandList->getDevice()->createAccelStruct(blasDesc);
+
+		commandList->beginMarker("BLAS Update");
+		commandList->buildBottomLevelAccelStruct(blas, blasDesc.bottomLevelGeometries.data(), blasDesc.bottomLevelGeometries.size());
+		commandList->endMarker();
+	}
+}

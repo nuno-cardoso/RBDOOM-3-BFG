@@ -310,6 +310,10 @@ public:
 	{
 		return true;
 	};
+
+	virtual nvrhi::rt::AccelStructHandle& GetBLAS() = 0;
+
+	virtual void CreateBLAS(nvrhi::rt::AccelStructDesc& blasDesc, nvrhi::ICommandList* commandList) = 0;
 };
 
 #endif /* !__MODEL_H__ */
